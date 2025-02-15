@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema/schema';
 import 'dotenv/config';
-import { faker } from "@faker-js/faker/.";
+import { faker } from "@faker-js/faker";
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -12,6 +12,11 @@ const pool = new Pool({
 const db = drizzle(pool, { schema }) as NodePgDatabase<typeof schema>;
 
 async function main() {
+    await db.delete(schema.usersToGroups);
+    await db.delete(schema.comments);
+    await db.delete(schema.posts);
+    await db.delete(schema.users);
+
     const userIds = await Promise.all(
         Array(50)
             .fill('')

@@ -5,6 +5,6 @@ import { posts } from "./posts.schema";
 export const comments = pgTable('comments', {
     id: serial("id").primaryKey(),
     text: text("text").notNull(),
-    authorId: integer("authorId").references(() => users.id),
-    postId: integer("postId").references(() => posts.id),
+    authorId: integer("authorId").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    postId: integer("postId").references(() => posts.id, { onDelete: "cascade" }).notNull(),
 });

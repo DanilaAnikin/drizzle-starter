@@ -29,6 +29,34 @@
       "when": 1739567175038,
       "tag": "0003_adorable_groot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1739571720475,
+      "tag": "0004_rainy_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739572298584,
+      "tag": "0005_serious_dreadnoughts",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1739574793976,
+      "tag": "0006_cuddly_metal_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1739574933156,
+      "tag": "0007_youthful_gunslinger",
+      "breakpoints": true
     }
   ]
 }
