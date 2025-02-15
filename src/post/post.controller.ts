@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, Put } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { UserId } from 'src/user.decorator';
+import { AuthGuard } from 'src/auth.guard';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Post()
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postService.create(createPostDto);
+  @Post('create-post')
+  @UseGuards(AuthGuard)
+  create(
+    @Body() body: CreatePostDto,
+    @UserId() userId: number
+  ) {
+    return this.postService.create(userId, body);
   }
 
   @Get()
@@ -22,9 +27,14 @@ export class PostController {
     return this.postService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  @Put(':id')
+  @UseGuards(AuthGuard)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @UserId() userId: number,
+    @Body() body: CreatePostDto
+  ) {
+    return this.postService.update(id, userId, body);
   }
 
   @Delete(':id')
