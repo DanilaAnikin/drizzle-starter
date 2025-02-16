@@ -23,8 +23,10 @@ export class PostController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.postService.findOne(id);
   }
 
   @Put(':id')
@@ -38,7 +40,9 @@ export class PostController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.postService.remove(id);
   }
 }

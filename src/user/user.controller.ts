@@ -18,7 +18,6 @@ export class UserController {
         @Query('order', new DefaultValuePipe('asc')) order: string,
         @UserId() userId: number
     ) {
-        console.log(userId)
         return this.userService.findAll(limit, page, orderBy, order);
     }
 
