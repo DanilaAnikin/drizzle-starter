@@ -1,13 +1,13 @@
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { eq } from "drizzle-orm";
+import { eq, InferSelectModel } from "drizzle-orm";
 import { DRIZZLE } from "src/drizzle/drizzle.module";
 import { comments } from "src/drizzle/schema/comments.schema";
 import { DrizzleDB } from "src/drizzle/types/drizzle";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { users } from "src/drizzle/schema/users.schema";
 import { posts } from "src/drizzle/schema/posts.schema";
-import { DeleteCommentDto } from "./dto/delete-post.dto";
+import { CommentReturn } from "src/types";
 
 @Injectable()
 export class CommentService {
@@ -17,7 +17,7 @@ export class CommentService {
         this.jwtSecret = this.configService.getOrThrow("JWT_SECRET");
     }
 
-    async getCommentById(commentId: number) {
+    async getCommentById(commentId: number): Promise<CommentReturn> {
         return await this.db
             .select({
                 id: comments.id,
@@ -27,26 +27,19 @@ export class CommentService {
                     name: users.name,
                     email: users.email
                 },
-                post: {
-                    id: posts.id,
-                    name: posts.title,
-                    content: posts.content,
-                    authorId: posts.authorId,
-                }
             })
             .from(comments)
             .leftJoin(users, eq(comments.authorId, users.id))
-            .leftJoin(posts, eq(comments.postId, posts.id))
-            .where(eq(comments.id, commentId));
+            .where(eq(comments.id, commentId))[0];
     }
     
-    findAll(postId: number) {
+    findAll(postId: number): Promise<Partial<CommentReturn>[]> {
         return this.db.query.comments.findMany({
             where: eq(comments.postId, postId),
         });
     }
 
-    async create(userId: number, data: CreateCommentDto) {
+    async create(userId: number, data: CreateCommentDto): Promise<CommentReturn> {
         const comment = (await this.db.insert(comments).values({
             text: data.text,
             postId: data.postId,
@@ -56,7 +49,7 @@ export class CommentService {
         return this.getCommentById(comment.id);
     }
 
-    async update(id: number, userId: number, data: CreateCommentDto) {
+    async update(id: number, userId: number, data: CreateCommentDto): Promise<CommentReturn> {
         const comment = await this.db.query.comments.findFirst({
             where: eq(comments.id, id),
         });
@@ -77,7 +70,7 @@ export class CommentService {
         return this.getCommentById(id);
     }
 
-    async remove(id: number, userId: number, data: DeleteCommentDto) {
+    async remove(id: number, userId: number): Promise<void> {
         const comment = await this.db.query.comments.findFirst({
             where: eq(comments.id, id),
         });
@@ -88,12 +81,12 @@ export class CommentService {
 
         const postAuthor = await this.db.select({
             authorId: posts.id,
-        }).from(posts).where(eq(posts.id, data.postId))[0];
+        }).from(posts).where(eq(posts.id, comment.postId))[0];
 
         if (comment.authorId !== userId && comment.authorId !== postAuthor.authorId) {
             throw new UnauthorizedException('Only author of comment or author of post can remove his comment');
         }
-
-        return await this.db.delete(comments).where(eq(comments.id, id));
+        
+        await this.db.delete(comments).where(eq(comments.id, id));
     }
 }

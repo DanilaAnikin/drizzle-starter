@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { users } from 'src/drizzle/schema/users.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ConfigService } from '@nestjs/config';
+import { PostReturn } from 'src/types';
 
 @Injectable()
 export class PostService {
@@ -14,7 +15,7 @@ export class PostService {
     this.jwtSecret = this.configService.getOrThrow("JWT_SECRET");
   }
 
-  async getPostById(postId: number) {
+  async getPostById(postId: number): Promise<PostReturn> {
     return await this.db.select({
       id: posts.id,
       title: posts.title,
@@ -24,10 +25,10 @@ export class PostService {
         name: users.name,
         email: users.email
       }
-    }).from(posts).leftJoin(users, eq(posts.authorId, users.id)).where(eq(posts.id, postId));
+    }).from(posts).leftJoin(users, eq(posts.authorId, users.id)).where(eq(posts.id, postId))[0];
   }
 
-  async create(userId: number, data: CreatePostDto) {
+  async create(userId: number, data: CreatePostDto): Promise<PostReturn> {
     const post = (await this.db.insert(posts).values({
       title: data.title,
       content: data.content,
@@ -35,43 +36,40 @@ export class PostService {
     }).returning({id: posts.id}))[0];
 
     return this.getPostById(post.id);
-
   }
 
-  async findAll() {
+  async findAll(): Promise<PostReturn[]> {
     return await this.db.query.posts.findMany({
       with: {
         author: {
-          with: {
-            usersToGroups: {
-              with: {
-                group: true,
-              }
-            }
+          columns: {
+            password: false,
           }
         },
       },
-    });
-  }
-
-  async findOne(id: number) {
-    return await this.db.query.posts.findMany({
-      where: eq(users.id, id),
-      with: {
-        author: {
-          with: {
-            usersToGroups: {
-              with: {
-                group: true,
-              }
-            }
-          }
-        }
+      columns: {
+        authorId: false,
       }
     });
   }
 
-  async update(id: number, userId: number, data: CreatePostDto) {
+  async findOne(id: number): Promise<PostReturn> {
+    return await this.db.query.posts.findFirst({
+      where: eq(users.id, id),
+      with: {
+        author: {
+          columns: {
+            password: false,
+          }
+        }
+      },
+      columns: {
+        authorId: false,
+      }
+    });
+  }
+
+  async update(id: number, userId: number, data: CreatePostDto): Promise<PostReturn> {
     const post = await this.db.query.posts.findFirst({
       where: eq(posts.id, id)
     });
@@ -92,7 +90,7 @@ export class PostService {
     return this.getPostById(id);
   }
 
-  async remove(id: number) {
-    return await this.db.delete(posts).where(eq(posts.id, id));
+  async remove(id: number): Promise<void> {
+    await this.db.delete(posts).where(eq(posts.id, id));
   }
 }

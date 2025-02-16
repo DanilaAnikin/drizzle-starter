@@ -3,15 +3,14 @@ import { CommentService } from './comment.service';
 import { AuthGuard } from 'src/auth.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UserId } from 'src/user.decorator';
-import { DeleteCommentDto } from './dto/delete-post.dto';
 
 @Controller('comment')
 export class CommentController {
     constructor(private commentService: CommentService) {}
-    @Get()
+    @Get(':postId')
     @UseGuards(AuthGuard)
     findAll(
-        @Query('post_id', ParseIntPipe) postId: number,
+        @Param('postId', ParseIntPipe) postId: number,
     ) {
         return this.commentService.findAll(postId);
     }
@@ -40,8 +39,7 @@ export class CommentController {
     remove(
         @Param('id', ParseIntPipe) id: number,
         @UserId() userId: number,
-        @Body() body: DeleteCommentDto,
     ) {
-        return this.commentService.remove(id, userId, body);
+        return this.commentService.remove(id, userId);
     }
 }

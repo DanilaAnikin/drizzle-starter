@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
+import { User } from 'src/types';
 
 @Injectable()
 export class UserService {
@@ -18,7 +19,7 @@ export class UserService {
         this.jwtSecret = this.configService.getOrThrow("JWT_SECRET");
     }
 
-    findAll(limit: number, page: number, orderBy: string, order: string) {
+    findAll(limit: number, page: number, orderBy: string, order: string): Promise<User[]> {
         const orderFunc = order === "asc" ? asc : desc;
         const orderByParam = ["id", "name", "email"].includes(orderBy) ? users[orderBy] : users.id;
 
@@ -32,7 +33,7 @@ export class UserService {
         });
     }
 
-    async findOne(id: number) {
+    async findOne(id: number): Promise<User> {
         const user = await this.db.query.users.findFirst({
             where: eq(users.id, id),
             columns: {
@@ -47,7 +48,7 @@ export class UserService {
         return user;
     }
 
-    async createUser(data: CreateUserDto) {
+    async createUser(data: CreateUserDto): Promise<string> {
         const hashPassword = await bcrypt.hash(data.password, 10)
 
         const user = await this.db.query.users.findFirst({
@@ -71,7 +72,7 @@ export class UserService {
         return jwt.sign({ id: newUser[0].id }, this.jwtSecret, { expiresIn: '30d' });
     }
 
-    async updateUser(id: number, data: UpdateUserDto) {
+    async updateUser(id: number, data: UpdateUserDto): Promise<User> {
         const user = await this.db.query.users.findFirst({
             where: eq(users.id, id),
         });
@@ -97,10 +98,10 @@ export class UserService {
         
         return await this.db.update(users).set({
         ...updateData
-        }).where(eq(users.id, id)).returning({ id: users.id, name: users.name, email: users.email });
+        }).where(eq(users.id, id)).returning({ id: users.id, name: users.name, email: users.email })[0];
     }
 
-    async loginUser(data: LoginUserDto) {
+    async loginUser(data: LoginUserDto): Promise<string> {
         const user = await this.db.query.users.findFirst({
             where: eq(users.email, data.email)
         });
