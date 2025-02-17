@@ -16,7 +16,7 @@ export class PostService {
   }
 
   async getPostById(postId: number): Promise<PostReturn> {
-    return await this.db.select({
+    const post = await this.db.select({
       id: posts.id,
       title: posts.title,
       content: posts.content,
@@ -26,6 +26,12 @@ export class PostService {
         email: users.email
       }
     }).from(posts).leftJoin(users, eq(posts.authorId, users.id)).where(eq(posts.id, postId))[0];
+
+    if (!post) {
+      throw new NotFoundException('Post with id: ${postId} not found');
+    }
+
+    return post;
   }
 
   async create(userId: number, data: CreatePostDto): Promise<PostReturn> {

@@ -33,7 +33,7 @@ export class CommentService {
             .where(eq(comments.id, commentId))[0];
     }
     
-    findAll(postId: number): Promise<Partial<CommentReturn>[]> {
+    findAll(postId: number): Promise<Omit<CommentReturn, 'author'>[]> {
         return this.db.query.comments.findMany({
             where: eq(comments.postId, postId),
         });
@@ -80,7 +80,7 @@ export class CommentService {
         }
 
         const postAuthor = await this.db.select({
-            authorId: posts.id,
+            authorId: posts.authorId,
         }).from(posts).where(eq(posts.id, comment.postId))[0];
 
         if (comment.authorId !== userId && comment.authorId !== postAuthor.authorId) {

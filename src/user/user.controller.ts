@@ -1,10 +1,11 @@
-import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth.guard';
 import { UserId } from 'src/user.decorator';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -45,9 +46,13 @@ export class UserController {
     }
 
     @Post('login')
-    loginUser(
+    async loginUser(
         @Body() body: LoginUserDto,
+        @Res({ passthrough: true }) res: Response,
     ) {
-        return this.userService.loginUser(body);
+        const token = await this.userService.loginUser(body);
+        res.setHeader('Authorization', `Bearer ${token}`);
+        
+        return await this.userService.loginUser(body);
     }
 }

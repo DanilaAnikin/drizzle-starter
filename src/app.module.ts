@@ -11,7 +11,7 @@ import { CommentModule } from './comment/comment.module';
     PostModule,
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
-    CommentModule
+    CommentModule,
   ],
 })
 export class AppModule {}

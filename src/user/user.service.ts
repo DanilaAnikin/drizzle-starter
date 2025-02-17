@@ -15,7 +15,11 @@ import { User } from 'src/types';
 export class UserService {
     private readonly jwtSecret: string
 
-    constructor(@Inject(DRIZZLE) private db: DrizzleDB, private configService: ConfigService) {
+    constructor(
+        @Inject(DRIZZLE)
+        private db: DrizzleDB,
+        private configService: ConfigService,
+    ) {
         this.jwtSecret = this.configService.getOrThrow("JWT_SECRET");
     }
 
@@ -67,9 +71,9 @@ export class UserService {
             name: data.name,
             email: data.email,
             password: hashPassword,
-        }).returning({ id: users.id, name: users.name, email: users.email });
+        }).returning({ id: users.id, name: users.name, email: users.email })[0];
         
-        return jwt.sign({ id: newUser[0].id }, this.jwtSecret, { expiresIn: '30d' });
+        return jwt.sign({ id: newUser.id }, this.jwtSecret, { expiresIn: '30d' });
     }
 
     async updateUser(id: number, data: UpdateUserDto): Promise<User> {
