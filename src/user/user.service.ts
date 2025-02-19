@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DRIZZLE } from '../drizzle/drizzle.module';
 import { DrizzleDB } from 'src/drizzle/types/drizzle';
 import { asc, desc, eq, InferInsertModel } from 'drizzle-orm';
@@ -10,6 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from 'src/types';
+import { Response } from 'express';
 
 @Injectable()
 export class UserService {
@@ -35,6 +36,22 @@ export class UserService {
                 password: false,
             },
         });
+    }
+
+    async getUserFromToken(res: Response) {
+        try {
+            const response = res.getHeader('Authorization');
+            const token = response.split(' ')[1];
+            const decoded = jwt.verify(token, this.jwtSecret) as { id: number};
+
+            if (!decoded || !decoded.id) {
+                throw new UnauthorizedException('Invalid token');
+            }
+
+            return this.findOne(decoded.id);
+        } catch(error) {
+            throw new UnauthorizedException('Invalid or expired token');
+        }
     }
 
     async findOne(id: number): Promise<User> {
@@ -119,7 +136,7 @@ export class UserService {
         if (!passwordMatch) {
             throw new BadRequestException("Passwords don't match");
         }
-
+        
         return jwt.sign({ id: user.id }, this.jwtSecret, { expiresIn: '30d' });
     }
 }

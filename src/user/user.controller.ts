@@ -1,4 +1,4 @@
-import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -29,6 +29,14 @@ export class UserController {
         return this.userService.findOne(id);
     }
 
+    @Get('get-logged-user')
+    @UseGuards(AuthGuard)
+    getUserFromToken(
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        return this.userService.getUserFromToken(res);
+    }
+
     @Post('register')
     createUser(
         @Body() body: CreateUserDto
@@ -36,7 +44,7 @@ export class UserController {
         return this.userService.createUser(body);
     }
 
-    @Put()
+    @Put(':id')
     @UseGuards(AuthGuard)
     updateUser(
         @Body() body: UpdateUserDto,
@@ -53,6 +61,6 @@ export class UserController {
         const token = await this.userService.loginUser(body);
         res.setHeader('Authorization', `Bearer ${token}`);
         
-        return await this.userService.loginUser(body);
+        return token;
     }
 }
