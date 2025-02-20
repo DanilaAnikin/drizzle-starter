@@ -39,10 +39,9 @@ export class UserController {
   }
 
   @Get('get-logged-user')
-  @UseGuards(AuthGuard)
-  getUserFromToken(@Res({ passthrough: true }) res: Response) {
-    const token = res.getHeader('Authorization') as string;
-    return this.userService.getUserFromToken(token.split(' ')[1]);
+  getUserFromToken(@UserId() userId: number) {
+    console.log(userId);
+    return this.userService.getUserFromToken(userId);
   }
 
   @Post('register')
@@ -61,7 +60,6 @@ export class UserController {
     @Body() body: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log(body);
     const token = await this.userService.loginUser(body);
     res.setHeader('Authorization', `Bearer ${token}`);
 

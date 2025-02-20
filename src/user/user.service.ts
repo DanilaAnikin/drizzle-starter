@@ -50,15 +50,13 @@ export class UserService {
     });
   }
 
-  async getUserFromToken(token: string) {
+  async getUserFromToken(userId: number) {
     try {
-      const decoded = jwt.verify(token, this.jwtSecret) as { id: number };
+      const user = await this.db.query.users.findFirst({
+        where: eq(users.id, userId),
+      });
 
-      if (!decoded || !decoded.id) {
-        throw new UnauthorizedException('Invalid token');
-      }
-
-      return this.findOne(decoded.id);
+      console.log(user);
     } catch (error) {
       console.log(error);
       throw new UnauthorizedException('Invalid or expired token');
@@ -145,7 +143,7 @@ export class UserService {
     const user = await this.db.query.users.findFirst({
       where: eq(users.email, data.email),
     });
-    console.log(user);
+
     if (!user) {
       throw new NotFoundException(`User with email ${data.email} not found`);
     }
