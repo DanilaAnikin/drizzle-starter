@@ -39,14 +39,21 @@ export class UserController {
   }
 
   @Get('get-logged-user')
+  @UseGuards(AuthGuard)
   getUserFromToken(@UserId() userId: number) {
     console.log(userId);
     return this.userService.getUserFromToken(userId);
   }
 
   @Post('register')
-  createUser(@Body() body: CreateUserDto) {
-    return this.userService.createUser(body);
+  async createUser(
+    @Body() body: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = await this.userService.createUser(body);
+    res.setHeader('Authorization', `Bearer ${token}`);
+
+    return token;
   }
 
   @Put(':id')

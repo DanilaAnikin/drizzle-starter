@@ -50,13 +50,14 @@ export class UserService {
     });
   }
 
-  async getUserFromToken(userId: number) {
+  async getUserFromToken(userId: number): Promise<User> {
+    console.log(userId);
     try {
       const user = await this.db.query.users.findFirst({
         where: eq(users.id, userId),
       });
 
-      console.log(user);
+      return user;
     } catch (error) {
       console.log(error);
       throw new UnauthorizedException('Invalid or expired token');
